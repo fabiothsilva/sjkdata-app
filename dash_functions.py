@@ -15,6 +15,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pydeck as pdk
 
+import data_processeing as dpg
+
 
 def ajustar_milhar(valor):
     
@@ -26,15 +28,15 @@ def ajustar_milhar(valor):
         
     return str(valor_ajustado)
 
-@st.cache_resource
+
 def plotly_genderchart():
-    try:
-        # Carrega os dados da API do IBGE
-        df = pd.DataFrame(dpg.ibge_data())
-    except:
-        message1 = st.title("Erro!")
-        message2 = st.write("Não foi possível conectar a API do IBGE")
-        return message1, message2
+    data = {
+        'Category': ["👩🏿Feminino", "🧔Masculino", "👨‍👩‍👧‍👦Total"],
+        'Value': [361695, 335359, 697054]
+                  
+    }
+
+    df = pd.DataFrame(data)
     
     # df["Value"] = df["Value"].apply(ajustar_milhar)    
     
@@ -50,59 +52,59 @@ def plotly_genderchart():
         "hover_data": "Pessoas por Gênero"
     })
     
-    with st.container(border=True):
+    # with st.container(border=True):
     
-        with st.expander("📋Tabela de Dados"):    
-            st.dataframe(df_show, hide_index=True)
+    with st.expander("📋Tabela de Dados"):    
+        st.dataframe(df_show, hide_index=True)
+
+    # Define cores personalizadas
+    color_map = {
+        "👩🏿Feminino": "lightpink",
+        "🧔Masculino": "lightblue",
+        "👨‍👩‍👧‍👦Total": "lightgray"
+    }
+
+    # Cria gráfico de barras com Plotly
+    fig = px.bar(
+        df,
+        x="Category",
+        y="Value",
+        color="Category",
+        text="hover_data",  # <- Aqui está o segredo!
+        color_discrete_map=color_map,
+        labels={"Category": "Gênero", "hover_data": "Pessoas por Gênero"},
+        title="Pessoas por Gênero",
+        hover_data={"Category": True, "hover_data": True, "Value": False}
+    )
     
-        # Define cores personalizadas
-        color_map = {
-            "👩🏿Feminino": "lightpink",
-            "🧔Masculino": "lightblue",
-            "👨‍👩‍👧‍👦Total": "lightgray"
-        }
-    
-        # Cria gráfico de barras com Plotly
-        fig = px.bar(
-            df,
-            x="Category",
-            y="Value",
-            color="Category",
-            text="hover_data",  # <- Aqui está o segredo!
-            color_discrete_map=color_map,
-            labels={"Category": "Gênero", "hover_data": "Pessoas por Gênero"},
-            title="Pessoas por Gênero",
-            hover_data={"Category": True, "hover_data": True, "Value": False}
+    # Atualizar posição dos rótulos
+    fig.update_traces(
+        # text=df_show["Pessoas por Gênero"],  # Adiciona os valores como texto
+        textposition="outside",
+        textfont=dict(color="black", size=14),  # Define cor e tamanho do texto
+        # hoverinfo="label+value",
+        marker=dict(line=dict(color="black", width=1))
         )
-        
-        # Atualizar posição dos rótulos
-        fig.update_traces(
-            # text=df_show["Pessoas por Gênero"],  # Adiciona os valores como texto
-            textposition="outside",
-            textfont=dict(color="black", size=14),  # Define cor e tamanho do texto
-            # hoverinfo="label+value",
-            marker=dict(line=dict(color="black", width=1))
-            )
-    
-        fig.update_layout(
-            xaxis_title="Gênero",
-            yaxis_title="Pessoas por Gênero",
-            showlegend=False,
-            legend_title_text=None,
-            separators=",.",
-            xaxis=dict(
-                title_font=dict(size=16, color="black"),
-                tickfont=dict(size=14, color="black")
-            ),
-            yaxis=dict(
-                title_font=dict(size=16, color="black"),
-                tickfont=dict(size=14, color="black"),
-                range=[0, df["Value"].max() * 1.1]
-            ),        
-        )
-    
-        st.plotly_chart(fig)
-        return st.caption("Fonte: IBGE, censo 2022")
+
+    fig.update_layout(
+        xaxis_title="Gênero",
+        yaxis_title="Pessoas por Gênero",
+        showlegend=False,
+        legend_title_text=None,
+        separators=",.",
+        xaxis=dict(
+            title_font=dict(size=16, color="black"),
+            tickfont=dict(size=14, color="black")
+        ),
+        yaxis=dict(
+            title_font=dict(size=16, color="black"),
+            tickfont=dict(size=14, color="black"),
+            range=[0, df["Value"].max() * 1.1]
+        ),        
+    )
+
+    st.plotly_chart(fig)
+    return st.caption("Fonte: IBGE, censo 2022")
 
 def pop_etaria():
 
@@ -197,16 +199,16 @@ def pop_etaria_2():
     
         )
     
-    with st.container(border=True):
+    # with st.container(border=True):
     
-        # Título do dashboard
-        # st.title("📊 População por Faixa Etária – São José dos Campos")
-        
-        with st.expander("📋 Tabela de Dados"):
-            st.dataframe(df, hide_index= True)
-        
-        # Exibir no Streamlit
-        st.plotly_chart(fig, use_container_width=True)   
+    # Título do dashboard
+    # st.title("📊 População por Faixa Etária – São José dos Campos")
+    
+    with st.expander("📋 Tabela de Dados"):
+        st.dataframe(df, hide_index= True)
+    
+    # Exibir no Streamlit
+    st.plotly_chart(fig, use_container_width=True)   
 
 def pop_urb_rural():    
     # Dados populacionais
@@ -269,17 +271,17 @@ def pop_urb_rural():
         uniformtext_mode='show',
     )
     
-    with st.container(border= True):
+    # with st.container(border= True):
         
-        # Título do dashboard
-        # st.title("🏙️ População Urbana vs Rural – São José dos Campos")
+    # Título do dashboard
+    # st.title("🏙️ População Urbana vs Rural – São José dos Campos")
+
+    # Tabela de dados
+    with st. expander("📋 Tabela de Dados"):
+        st.dataframe(df_formatado, hide_index = True)
     
-        # Tabela de dados
-        with st. expander("📋 Tabela de Dados"):
-            st.dataframe(df_formatado, hide_index = True)
-        
-        # Exibir no Streamlit
-        st.plotly_chart(fig, use_container_width=True)
+    # Exibir no Streamlit
+    st.plotly_chart(fig, use_container_width=True)
 
 def domicilios():    
     # Dados oficiais
@@ -353,161 +355,163 @@ def domicilios():
         margin=dict(t=105, b=70, l=85, r=20)
     )
     
-    with st.container(border = True):    
-        # Título da seção
-        # st.title("🏠 Domicílios – São José dos Campos")
-        
-        # 🔽 Tabela dentro do expander
-        with st.expander("📋 Tabela de dados"):                   
-            st.dataframe(df_show, use_container_width=True, hide_index=True)
-        
-        # Exibir gráfico
-        st.plotly_chart(fig, use_container_width=True)
-        
-        # Texto explicativo
-        # st.markdown("📌 Cada domicílio possui, em média, **2,8 moradores**.")
-        
-        st.badge("Cada domicílio possui, em média, **2,8 moradores**.",
-                 icon= "📌",
-                 color = "green"
-                 )
-        
-        # 🔗 Fonte oficial
-        st.markdown("🔗 Fonte: [Prefeitura Municipal de São José dos Campos – Dados da Cidade](https://www.sjc.sp.gov.br/servicos/governanca/populacao/)")
+    # with st.container(border = True):    
+    # Título da seção
+    # st.title("🏠 Domicílios – São José dos Campos")
+    
+    # 🔽 Tabela dentro do expander
+    with st.expander("📋 Tabela de dados"):                   
+        st.dataframe(df_show, use_container_width=True, hide_index=True)
+    
+    # Exibir gráfico
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Texto explicativo
+    # st.markdown("📌 Cada domicílio possui, em média, **2,8 moradores**.")
+    
+    st.badge("Cada domicílio possui, em média, **2,8 moradores**.",
+                icon= "📌",
+                color = "green"
+                )
+    
+    # 🔗 Fonte oficial
+    st.markdown("🔗 Fonte: [Prefeitura Municipal de São José dos Campos – Dados da Cidade](https://www.sjc.sp.gov.br/servicos/governanca/populacao/)")
 
 def piramide_etaria():
-    with st.container(border=True):
-        # Título
-        # st.title("👶🏽👵🏿 Pirâmide Etária – São José dos Campos (Censo 2022)")
-        
-        st.badge("Você pode filtrar a pirâmide por faixa etária",
-                 icon = "❗",
-                 color = "red"
-                 )
-        
-        # Dados por grupo quinquenal
-        dados = {
-            "Grupo Etário": [
-                "0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34", "35-39",
-                "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", "70-74",
-                "75-79", "80-84", "85-89", "90-94", "95-99", "100+"
-            ],
-            "Homens": [
-                20442, 22933, 22335, 22726, 25154, 24915, 26157, 27734, 28317,
-                23336, 21040, 18869, 16576, 13642, 9947, 5990, 3124, 1385, 581, 144, 12
-            ],
-            "Mulheres": [
-                19545, 22027, 21573, 21643, 24652, 25640, 27780, 29870, 31141,
-                25827, 23437, 22468, 20413, 16600, 12226, 7828, 4727, 2659, 1219, 347, 73
-            ]
-        }
-        
-        df = pd.DataFrame(dados)
-        
-        # Lista de faixas etárias disponíveis
-        faixas_etarias = df["Grupo Etário"].tolist()
-        
-        # 2) Inicializa a seleção completa uma única vez
-        if "faixa_selecionada" not in st.session_state:
-            st.session_state.faixa_selecionada = faixas_etarias
-        
-        # 3) Botão para resetar seleção
-        if st.button("🔄 Restaurar seleção de faixas etárias"):
-            st.session_state.faixa_selecionada = faixas_etarias
-        
-        # 4) multiselect sempre visível, usa 'key' e SEM default
-        faixa_selecionada = st.multiselect(
-            "👨‍👩‍👧‍👦 Selecione as faixas etárias que deseja visualizar:",
-            options=faixas_etarias,
-            key="faixa_selecionada"  # vincula widget a st.session_state["faixa_selecionada"]
-        )
-        
-        # 5) Agora use st.session_state.faixa_selecionada para filtrar o df
-        df_filtrado = df[df["Grupo Etário"].isin(st.session_state.faixa_selecionada)]
-        
-        # Inverter valores dos homens para aparecerem à esquerda
-        df_filtrado["Homens"] = df_filtrado["Homens"] * -1
-        
-        # remove a virgula dos milhares, ajusta para padrão BR
-        df_milhar_ajustado = df_filtrado.copy()
-        
-        df_milhar_ajustado["Homens"] = df_milhar_ajustado["Homens"].abs()
-        
-        df_milhar_ajustado["Homens"] = df_milhar_ajustado["Homens"].apply(ajustar_milhar)
-        
-        df_milhar_ajustado["Mulheres"] = df_milhar_ajustado["Mulheres"].apply(ajustar_milhar)
-        
-        # Estatísticas resumidas
-        total_homens = df_filtrado["Homens"].abs().sum()
-        total_mulheres = df_filtrado["Mulheres"].sum()
-        total_geral = total_homens + total_mulheres
-                
-        # Gráfico interativo
-        fig = go.Figure()
-        
-        fig.add_trace(go.Bar(
-            y=df_filtrado["Grupo Etário"],
-            x=df_filtrado["Homens"],
-            name="👨 Homens",
-            orientation='h',
-            marker_color="#B0E0E6",
-            customdata=df_milhar_ajustado["Homens"],  # 👈 valores positivos para o tooltip
-            hovertemplate="Homens: %{customdata:,}<extra></extra>",       
-            marker=dict(line=dict(color="black", width=1))
-        ))
-        
-        fig.add_trace(go.Bar(
-            y=df_filtrado["Grupo Etário"],
-            x=df_filtrado["Mulheres"],
-            name="👩 Mulheres",
-            orientation='h',
-            marker_color="#FADADD",
-            customdata=df_milhar_ajustado["Mulheres"],
-            hovertemplate="Mulheres: %{customdata:,}<extra></extra>",
-            marker=dict(line=dict(color="black", width=1))
-        ))
-        
-        # Layout refinado
-        fig.update_layout(
-            barmode='overlay',
-            title="📊 Distribuição da População por Sexo e Grupos Etários",
-            xaxis=dict(title="População", tickvals=[-30000, -15000, 0, 15000, 30000],
-                       ticktext=["30.000", "15.000", "0", "15.000", "30.000"],
-                       title_font=dict(size=16, color="black"),
-                       tickfont=dict(size=14, color="black")                       
-                       ),
-            yaxis=dict(title="Grupo Etário", 
-                       autorange="reversed",
-                       title_font=dict(size=16, color="black"),
-                       tickfont=dict(size=14, color="black")                       
-                       ),
+    # with st.container(border=True):
+    # Título
+    # st.title("👶🏽👵🏿 Pirâmide Etária – São José dos Campos (Censo 2022)")
+    
+    st.badge("Você pode filtrar a pirâmide por faixa etária",
+                icon = "❗",
+                color = "red"
+                )
+    
+    # Dados por grupo quinquenal
+    dados = {
+        "Grupo Etário": [
+            "0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34", "35-39",
+            "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", "70-74",
+            "75-79", "80-84", "85-89", "90-94", "95-99", "100+"
+        ],
+        "Homens": [
+            20442, 22933, 22335, 22726, 25154, 24915, 26157, 27734, 28317,
+            23336, 21040, 18869, 16576, 13642, 9947, 5990, 3124, 1385, 581, 144, 12
+        ],
+        "Mulheres": [
+            19545, 22027, 21573, 21643, 24652, 25640, 27780, 29870, 31141,
+            25827, 23437, 22468, 20413, 16600, 12226, 7828, 4727, 2659, 1219, 347, 73
+        ]
+    }
+    
+    df = pd.DataFrame(dados)
+    
+    # Lista de faixas etárias disponíveis
+    faixas_etarias = df["Grupo Etário"].tolist()
+    
+    # 2) Inicializa a seleção completa uma única vez
+    if "faixa_selecionada" not in st.session_state:
+        st.session_state.faixa_selecionada = faixas_etarias
+    
+    # 3) Botão para resetar seleção
+    if st.button("🔄 Restaurar seleção de faixas etárias"):
+        st.session_state.faixa_selecionada = faixas_etarias
+    
+    # 4) multiselect sempre visível, usa 'key' e SEM default
+    faixa_selecionada = st.multiselect(
+        "👨‍👩‍👧‍👦 Selecione as faixas etárias que deseja visualizar:",
+        options=faixas_etarias,
+        key="faixa_selecionada"  # vincula widget a st.session_state["faixa_selecionada"]
+    )
+    
+    # 5) Agora use st.session_state.faixa_selecionada para filtrar o df
+    df_filtrado = df[df["Grupo Etário"].isin(st.session_state.faixa_selecionada)]
+    
+    # Inverter valores dos homens para aparecerem à esquerda
+    df_filtrado["Homens"] = df_filtrado["Homens"] * -1
+    
+    # remove a virgula dos milhares, ajusta para padrão BR
+    df_milhar_ajustado = df_filtrado.copy()
+    
+    df_milhar_ajustado["Homens"] = df_milhar_ajustado["Homens"].abs()
+    
+    df_milhar_ajustado["Homens"] = df_milhar_ajustado["Homens"].apply(ajustar_milhar)
+    
+    df_milhar_ajustado["Mulheres"] = df_milhar_ajustado["Mulheres"].apply(ajustar_milhar)
+
+    # st.dataframe(df_milhar_ajustado)
+    
+    # Estatísticas resumidas
+    total_homens = df_filtrado["Homens"].abs().sum()
+    total_mulheres = df_filtrado["Mulheres"].sum()
+    total_geral = total_homens + total_mulheres
             
-            legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=-0.3,
-                xanchor="center",
-                x=0.5,
-                font=dict(size=14)
-            ),
-            height=700,
-            margin=dict(t=80, b=60, l=60, r=60)
-        )
+    # Gráfico interativo
+    fig = go.Figure()
+    
+    fig.add_trace(go.Bar(
+        y=df_filtrado["Grupo Etário"],
+        x=df_filtrado["Homens"],
+        name="👨 Homens",
+        orientation='h',
+        marker_color="#B0E0E6",
+        customdata=df_milhar_ajustado["Homens"],  # 👈 valores positivos para o tooltip
+        hovertemplate="Homens: %{customdata}<extra></extra>",       
+        marker=dict(line=dict(color="black", width=1))
+    ))
+    
+    fig.add_trace(go.Bar(
+        y=df_filtrado["Grupo Etário"],
+        x=df_filtrado["Mulheres"],
+        name="👩 Mulheres",
+        orientation='h',
+        marker_color="#FADADD",
+        customdata=df_milhar_ajustado["Mulheres"],
+        hovertemplate="Mulheres: %{customdata}<extra></extra>",
+        marker=dict(line=dict(color="black", width=1))
+    ))
+    
+    # Layout refinado
+    fig.update_layout(
+        barmode='overlay',
+        title="📊 Distribuição da População por Sexo e Grupos Etários",
+        xaxis=dict(title="População", tickvals=[-30000, -15000, 0, 15000, 30000],
+                    ticktext=["30.000", "15.000", "0", "15.000", "30.000"],
+                    title_font=dict(size=16, color="black"),
+                    tickfont=dict(size=14, color="black")                       
+                    ),
+        yaxis=dict(title="Grupo Etário", 
+                    autorange="reversed",
+                    title_font=dict(size=16, color="black"),
+                    tickfont=dict(size=14, color="black")                       
+                    ),
         
-        # Exibir gráfico
-        st.plotly_chart(fig, use_container_width=True)
-        
-        with st.container(border = True):
-            st.markdown("### 📌 Estatísticas Resumidas")
-            st.markdown(
-                f"- 👨 Total de homens nas faixas selecionadas: **{total_homens:,}**".replace(",", "."))
-            st.markdown(
-                f"- 👩 Total de mulheres nas faixas selecionadas: **{total_mulheres:,}**".replace(",", "."))
-            st.markdown(
-                f"- 👨‍👩‍👧‍👦 População total nas faixas selecionadas: **{total_geral:,}**".replace(",", "."))
-        
-        # Fonte
-        st.markdown("🔗 Fonte: [Prefeitura Municipal de São José dos Campos – População](https://www.sjc.sp.gov.br/servicos/governanca/populacao/)")
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.3,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=14)
+        ),
+        height=700,
+        margin=dict(t=80, b=60, l=20, r=20)
+    )
+    
+    # Exibir gráfico
+    st.plotly_chart(fig, use_container_width=True)
+    
+    with st.container(border = True):
+        st.markdown("### 📌 Estatísticas Resumidas")
+        st.markdown(
+            f"- 👨 Total de homens nas faixas selecionadas: **{total_homens:,}**".replace(",", "."))
+        st.markdown(
+            f"- 👩 Total de mulheres nas faixas selecionadas: **{total_mulheres:,}**".replace(",", "."))
+        st.markdown(
+            f"- 👨‍👩‍👧‍👦 População total nas faixas selecionadas: **{total_geral:,}**".replace(",", "."))
+    
+    # Fonte
+    st.markdown("🔗 Fonte: [Prefeitura Municipal de São José dos Campos – População](https://www.sjc.sp.gov.br/servicos/governanca/populacao/)")
 
 def pop_região():    
     
@@ -584,30 +588,30 @@ def pop_região():
                    tickfont=dict(size=14, color="black")
                    ),
         separators=",.",
-        margin=dict(t=80, b=50, l=100, r=200),
+        margin=dict(t=80, b=50, l=20, r=20),
         height=600,
         showlegend=False
     )
     
-    with st.container(border=True):        
-        # 6) Subtítulo
-        # st.subheader("🗺️ População por Região")
-        
-        # 8) Tabela dentro do expander (sem índice)
-        with st.expander("📋 Tabela de dados"):
-            df_display = df_regiao.reset_index(drop=True)
-            st.dataframe(df_display, 
-                         use_container_width=True,
-                         hide_index= True
-                         )
-        
-        # 12) Renderiza o gráfico
-        st.plotly_chart(fig, use_container_width=True)
-        
-        # 13) Fonte oficial
-        st.markdown(
-            "🔗 Fonte: [Prefeitura Municipal de São José dos Campos – População](https://www.sjc.sp.gov.br/servicos/governanca/populacao/)"
-        )
+    # with st.container(border=True):        
+    # 6) Subtítulo
+    # st.subheader("🗺️ População por Região")
+    
+    # 8) Tabela dentro do expander (sem índice)
+    with st.expander("📋 Tabela de dados"):
+        df_display = df_regiao.reset_index(drop=True)
+        st.dataframe(df_display, 
+                        use_container_width=True,
+                        hide_index= True
+                        )
+    
+    # 12) Renderiza o gráfico
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # 13) Fonte oficial
+    st.markdown(
+        "🔗 Fonte: [Prefeitura Municipal de São José dos Campos – População](https://www.sjc.sp.gov.br/servicos/governanca/populacao/)"
+    )
 
 def pop_região_map():
 
@@ -636,285 +640,132 @@ def pop_região_map():
         # Criar DataFrame
     df = pd.DataFrame(data)
     
-    with st.container(border = True):
+    # with st.container(border = True):
 
     # Título do aplicativo
-        st.markdown("_**Mapa interativo**_")
-        
-        # Seletor de métrica
-        metrica = st.selectbox("Selecione a métrica para visualização:", 
-                               ["População", "Domicílios"])
+    st.markdown("_**Mapa interativo**_")
     
-        # Exibir tabela de dados
-        st.badge("Você pode manipular e interagir com o mapa",
-                 icon="🔎",
-                 color= "green")
-        # st.dataframe(df)
+    # Seletor de métrica
+    metrica = st.selectbox("Selecione a métrica para visualização:", 
+                            ["População", "Domicílios"])
+
+    # Exibir tabela de dados
+    st.badge("Você pode manipular e interagir com o mapa",
+                icon="🔎",
+                color= "green")
+    # st.dataframe(df)
+
+    # Criar o mapa com Pydeck
+    layer = pdk.Layer(
+    "ColumnLayer",
+    data=df,
+    get_position=["Longitude", "Latitude"],
+    get_elevation=f"{metrica} / 100",    
+    elevation_scale=4,
+    radius=700,
+    get_fill_color="[255 - Domicílios / 500, Domicílios / 500, 100, 160]", # 160 = ~63% opacidade
+    pickable=True,
+    auto_highlight=True
+    )
+
+
+
+    # Configuração da visualização do mapa
+    view_state = pdk.ViewState(
+    latitude=-23.2,
+    longitude=-45.9,
+    zoom=10,
+    pitch=45,  # Inclinação para efeito 3D
+    bearing=0
+    )
     
-        # Criar o mapa com Pydeck
-        layer = pdk.Layer(
-        "ColumnLayer",
-        data=df,
-        get_position=["Longitude", "Latitude"],
-        get_elevation=f"{metrica} / 100",    
-        elevation_scale=4,
-        radius=700,
-        get_fill_color="[255 - Domicílios / 500, Domicílios / 500, 100, 160]", # 160 = ~63% opacidade
-        pickable=True,
-        auto_highlight=True
-        )
+    #ajusta o df para o tooltip usar separador de milhar padrão BR
+    df["População"] = str(df["População"].apply(ajustar_milhar))
+    df["Domicílios"] = str(df["Domicílios"].apply(ajustar_milhar))
     
-    
-    
-        # Configuração da visualização do mapa
-        view_state = pdk.ViewState(
-        latitude=-23.2,
-        longitude=-45.9,
-        zoom=10,
-        pitch=45,  # Inclinação para efeito 3D
-        bearing=0
-        )
-        
-        #ajusta o df para o tooltip usar separador de milhar padrão BR
-        df["População"] = str(df["População"].apply(ajustar_milhar))
-        df["Domicílios"] = str(df["Domicílios"].apply(ajustar_milhar))
-        
-        # df.rename(columns={"População": "Populacao", "Domicílios": "Domicilios"}, inplace=True)
-    
-    
-        # Renderizar o mapa
-        st.pydeck_chart(pdk.Deck(
-            map_style="light",
-            layers=[layer],
-            initial_view_state=view_state,
-            tooltip={
-                "html": "<b>{Região}</b><br>População: {População}<br>Domicílios: {Domicílios}", 
-                "style": {
-                    "backgroundColor": "rgba(195, 195, 195, 0.85)",  # branco com 85% opacidade
-                    "color": "black",
-                    "borderRadius": "8px",  # cantos arredondados
-                    "padding": "10px",
-                    "boxShadow": "0px 0px 10px rgba(0, 0, 0, 0.2)"  # sombra leve
-        }
+    # df.rename(columns={"População": "Populacao", "Domicílios": "Domicilios"}, inplace=True)
+
+
+    # Renderizar o mapa
+    st.pydeck_chart(pdk.Deck(
+        map_style="light",
+        layers=[layer],
+        initial_view_state=view_state,
+        tooltip={
+            "html": "<b>{Região}</b><br>População: {População}<br>Domicílios: {Domicílios}", 
+            "style": {
+                "backgroundColor": "rgba(195, 195, 195, 0.85)",  # branco com 85% opacidade
+                "color": "black",
+                "borderRadius": "8px",  # cantos arredondados
+                "padding": "10px",
+                "boxShadow": "0px 0px 10px rgba(0, 0, 0, 0.2)"  # sombra leve
     }
+}
+
+    ))
     
-        ))
-        
-        st.markdown("""
-        ### 🔍 Legenda
-        
-        - **Altura da coluna**: representa a quantidade de habitantes ou domicílios, conforme a métrica selecionada.
-        - **Cor da coluna**: quanto mais verde, maior o número de habitantes ou domicílios.
-        """)
+    st.markdown("""
+    ### 🔍 Legenda
+    
+    - **Altura da coluna**: representa a quantidade de habitantes ou domicílios, conforme a métrica selecionada.
+    - **Cor da coluna**: quanto mais verde, maior o número de habitantes ou domicílios.
+    """)
 
 def setor_socio():
-    with st.container(border= True):
-        # st.subheader("🏘️ População por Setores Socioeconômicos")
-    
-        # 3) Cria DataFrame
-        df_setores = pd.read_csv("setor_socio.csv",encoding='latin-1', sep=";")
-        
-        # Lista de setores disponíveis
-        setores_disponiveis = df_setores["Setor socioeconômico/área"].tolist()
-        
-        # Inicializa o estado da seleção
-        if "setores_selecionados" not in st.session_state:
-            st.session_state.setores_selecionados = setores_disponiveis
-        
-        # Botão de reset
-        if st.button("🔄 Resetar seleção de setores"):
-            st.session_state.setores_selecionados = setores_disponiveis
-        
-        # Caixa de seleção sempre visível
-        setores_selecionados = st.multiselect(
-            "🏘️ Selecione os setores que deseja visualizar:",
-            options=setores_disponiveis,
-            key="setores_selecionados"
-        )
-        
-        # Botão para alternar entre gráfico de barras e gráfico de pizza
-        tipo_grafico = st.radio(
-            "📊 Escolha o tipo de gráfico:",
-            options=["Barras", "Pizza"],
-            horizontal=True
-        )
-    
-    
-        # Filtra o DataFrame com base na seleção
-        df_filtrado = df_setores[df_setores["Setor socioeconômico/área"].isin(st.session_state.setores_selecionados)]
-        
-        df_filtrado = df_filtrado.sort_values(by= "População (2022)", ascending= True)
-        # 4) Tabela sem índice
-        with st.expander("📋 Tabela de dados"):
-            st.dataframe(df_filtrado.reset_index(drop=True), 
-                         hide_index= True,
-                         use_container_width=True)
-        
-        # Cria o gráfico com base na escolha
-        if tipo_grafico == "Barras":
-            fig = px.bar(
-                df_filtrado,
-                x="População (2022)",
-                y="Setor socioeconômico/área",
-                orientation="h",
-                text="População (2022)",
-                color="Setor socioeconômico/área",
-                color_discrete_sequence=px.colors.qualitative.Set3
-            )
-        
-            fig.update_traces(
-                texttemplate="%{text:,}",
-                textposition="outside",
-                textfont=dict(color="black", size=14),
-                marker_line_color="black",
-                marker_line_width=1,
-                cliponaxis=False,
-                hovertemplate="População: %{x:,.0f}<extra></extra>"
-            )
-        
-            fig.update_xaxes(
-                showgrid=True,
-                gridwidth=1,
-                gridcolor="lightgray",
-                zeroline=False,
-                tickfont=dict(size=14, family="Arial, sans-serif", color="black"),
-                title_font=dict(size=16, family="Arial, sans-serif", color="black")
-            )
-            fig.update_yaxes(
-                showgrid=False,
-                tickfont=dict(size=14, family="Arial, sans-serif", color="black"),
-                title_font=dict(size=16, family="Arial, sans-serif", color="black")
-            )
-        
-            fig.update_layout(
-                title="📊 Total de População por Setores Socioeconômicos",
-                xaxis=dict(title="População", color= "black"),
-                yaxis=dict(title="Setor", autorange="reversed", color="black"),
-                separators=",.",
-                margin=dict(t=80, b=50, l=250, r=150),
-                height=800,
-                showlegend=False
-            )
-        
-        else:  # Gráfico de Pizza
-            fig = px.pie(
-                df_filtrado,
-                names="Setor socioeconômico/área",
-                values="População (2022)",
-                color="Setor socioeconômico/área",
-                color_discrete_sequence=px.colors.qualitative.Set3,
-                hole=0.4
-            )
-        
-            fig.update_traces(
-                textinfo="label+percent",
-                hovertemplate="%{label}: %{value:,.0f} habitantes<extra></extra>",
-                marker=dict(line=dict(color="black", width=1))
-            )
-        
-            fig.update_layout(
-                title="🥧 Distribuição da População por Setores Socioeconômicos",
-                separators=",.",
-                height=600,
-                font=dict(size=14, family="Arial, sans-serif"),
-                margin=dict(t=100, b=100, l=50, r=50),
-                showlegend=False
-            )
-        
-        # Exibe o gráfico
-        st.plotly_chart(fig, use_container_width=True)
-        
-        # 10) Fonte oficial
-        st.markdown(
-            "🔗 Fonte: [Prefeitura Municipal de São José dos Campos – População](https://www.sjc.sp.gov.br/servicos/governanca/populacao/)"
-        )
+    # with st.container(border= True):
+    # st.subheader("🏘️ População por Setores Socioeconômicos")
 
-def pop_região_pizza():
-    with st.container(border=True):
-        # 1) Carrega os dados do arquivo
-        df = pd.read_csv("pop_socio.csv", encoding='latin-1', sep=";")
-        
-        # 2) Agrupa por região somando a população
-        df_agrupado = df.groupby("Região", as_index=False)["População"].sum()
-                
-        # 4) Gráfico de pizza
-        fig = px.pie(
-            df_agrupado,
-            names="Região",
-            values="População",
-            color="Região",
-            color_discrete_sequence=px.colors.qualitative.Set3,
-            hole=0.4
-        )
-        
-        # 5) Ajustes visuais
-        fig.update_traces(
-            textinfo="label+percent+value",
-            hovertemplate="%{label}: %{value:,.0f} habitantes<extra></extra>",
-            marker=dict(line=dict(color="black", width=1))
-        )
-        
-        # 6) Layout com legenda visível e fontes legíveis
-        fig.update_layout(
-            title="🥧 Distribuição da População por Região",
-            separators=",.",
-            height=800,
-            font=dict(size=14, family="Arial, sans-serif"),
-            margin=dict(t=80, b=50, l=50, r=250),
-            showlegend=False,
-            legend=dict(
-                orientation="v",
-                yanchor="top",
-                y=1,
-                xanchor="left",
-                x=1.05,
-                font=dict(size=13)
-            )
-        )
-        # 3) Tabela sem índice
-        with st.expander("📋 Ver população total por região"):
-            st.dataframe(df_agrupado.reset_index(drop=True), 
-                         hide_index=True,
-                         use_container_width=True)        
-        # 7) Exibe o gráfico
-        st.plotly_chart(fig, use_container_width=True)
-        
-        # 8) Fonte oficial
-        st.markdown(
-            "🔗 Fonte: [Prefeitura Municipal de São José dos Campos – População](https://www.sjc.sp.gov.br/servicos/governanca/populacao/)"
-        )
+    # 3) Cria DataFrame
+    df_setores = pd.read_csv("setor_socio.csv",encoding='latin-1', sep=";")
+    
+    # Lista de setores disponíveis
+    setores_disponiveis = df_setores["Setor socioeconômico/área"].tolist()
+    
+    # Inicializa o estado da seleção
+    if "setores_selecionados" not in st.session_state:
+        st.session_state.setores_selecionados = setores_disponiveis
+    
+    # Botão de reset
+    if st.button("🔄 Resetar seleção de setores"):
+        st.session_state.setores_selecionados = setores_disponiveis
+    
+    # Caixa de seleção sempre visível
+    setores_selecionados = st.multiselect(
+        "🏘️ Selecione os setores que deseja visualizar:",
+        options=setores_disponiveis,
+        key="setores_selecionados"
+    )
+    
+    # Botão para alternar entre gráfico de barras e gráfico de pizza
+    tipo_grafico = st.radio(
+        "📊 Escolha o tipo de gráfico:",
+        options=["Barras", "Pizza"],
+        horizontal=True
+    )
 
-def pop_socio_2():
-    with st.container(border= True):    
-        # Carrega os dados
-        df = pd.read_csv("pop_socio.csv",encoding='latin-1', sep=";")
-        
-        # Lista de regiões únicas
-        regioes_disponiveis = df["Região"].dropna().unique().tolist()
-        
-        # Filtro de seleção de região
-        regiao_selecionada = st.selectbox(
-            "🗺️ Selecione uma região para visualizar os subsetores:",
-            options=regioes_disponiveis
-        )
-        
-        # Filtra os subsetores da região escolhida
-        df_subsetores = df[df["Região"] == regiao_selecionada]
-        
-        # Ordena os subsetores por população (do maior para o menor)
-        df_subsetores = df_subsetores.sort_values(by="População", ascending=False)
-        
-        # Gráfico de barras por subsetores da região selecionada
+
+    # Filtra o DataFrame com base na seleção
+    df_filtrado = df_setores[df_setores["Setor socioeconômico/área"].isin(st.session_state.setores_selecionados)]
+    
+    df_filtrado = df_filtrado.sort_values(by= "População (2022)", ascending= True)
+    # 4) Tabela sem índice
+    with st.expander("📋 Tabela de dados"):
+        st.dataframe(df_filtrado.reset_index(drop=True), 
+                        hide_index= True,
+                        use_container_width=True)
+    
+    # Cria o gráfico com base na escolha
+    if tipo_grafico == "Barras":
         fig = px.bar(
-            df_subsetores,
-            x="População",
-            y="Susbsetor \x96 Nome",
+            df_filtrado,
+            x="População (2022)",
+            y="Setor socioeconômico/área",
             orientation="h",
-            text="População",
-            color="Susbsetor \x96 Nome",
+            text="População (2022)",
+            color="Setor socioeconômico/área",
             color_discrete_sequence=px.colors.qualitative.Set3
         )
-        
+    
         fig.update_traces(
             texttemplate="%{text:,}",
             textposition="outside",
@@ -922,9 +773,9 @@ def pop_socio_2():
             marker_line_color="black",
             marker_line_width=1,
             cliponaxis=False,
-            hovertemplate="%{y}: %{x:,.0f} habitantes<extra></extra>"
+            hovertemplate="População: %{x:,.0f}<extra></extra>"
         )
-        
+    
         fig.update_xaxes(
             showgrid=True,
             gridwidth=1,
@@ -938,21 +789,174 @@ def pop_socio_2():
             tickfont=dict(size=14, family="Arial, sans-serif", color="black"),
             title_font=dict(size=16, family="Arial, sans-serif", color="black")
         )
-        
+    
         fig.update_layout(
-            title=f"📊 População por Subsetores – Região {regiao_selecionada}",
+            title="📊 Total de População por Setores Socioeconômicos",
+            xaxis=dict(title="População", color= "black"),
+            yaxis=dict(title="Setor", autorange="reversed", color="black"),
             separators=",.",
-            height=900,
-            margin=dict(t=80, b=50, l=250, r=150),
+            margin=dict(t=80, b=50, l=20, r=20),
+            height=800,
             showlegend=False
         )
-        
-        with st.expander("📋 Ver tabela de subsetores da região selecionada"):
-            st.dataframe(df_subsetores[["Susbsetor \x96 Nome", "População"]].reset_index(drop=True), 
-                         use_container_width=True,
-                         hide_index = True)
-        
-        st.plotly_chart(fig, use_container_width=True)
+    
+    else:  # Gráfico de Pizza
+        fig = px.pie(
+            df_filtrado,
+            names="Setor socioeconômico/área",
+            values="População (2022)",
+            color="Setor socioeconômico/área",
+            color_discrete_sequence=px.colors.qualitative.Set3,
+            hole=0.4
+        )
+    
+        fig.update_traces(
+            textinfo="label+percent",
+            hovertemplate="%{label}: %{value:,.0f} habitantes<extra></extra>",
+            marker=dict(line=dict(color="black", width=1))
+        )
+    
+        fig.update_layout(
+            title="🥧 Distribuição da População por Setores Socioeconômicos",
+            separators=",.",
+            height=600,
+            font=dict(size=14, family="Arial, sans-serif"),
+            margin=dict(t=100, b=100, l=20, r=20),
+            showlegend=False
+        )
+    
+    # Exibe o gráfico
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # 10) Fonte oficial
+    st.markdown(
+        "🔗 Fonte: [Prefeitura Municipal de São José dos Campos – População](https://www.sjc.sp.gov.br/servicos/governanca/populacao/)"
+    )
+
+def pop_região_pizza():
+    # with st.container(border=True):
+    # 1) Carrega os dados do arquivo
+    df = pd.read_csv("pop_socio.csv", encoding='latin-1', sep=";")
+    
+    # 2) Agrupa por região somando a população
+    df_agrupado = df.groupby("Região", as_index=False)["População"].sum()
+            
+    # 4) Gráfico de pizza
+    fig = px.pie(
+        df_agrupado,
+        names="Região",
+        values="População",
+        color="Região",
+        color_discrete_sequence=px.colors.qualitative.Set3,
+        hole=0.4
+    )
+    
+    # 5) Ajustes visuais
+    fig.update_traces(
+        textinfo="label+percent+value",
+        hovertemplate="%{label}: %{value:,.0f} habitantes<extra></extra>",
+        marker=dict(line=dict(color="black", width=1))
+    )
+    
+    # 6) Layout com legenda visível e fontes legíveis
+    fig.update_layout(
+        title="🥧 Distribuição da População por Região",
+        separators=",.",
+        height=800,
+        font=dict(size=14, family="Arial, sans-serif"),
+        margin=dict(t=80, b=50, l=20, r=20),
+        showlegend=False,
+        legend=dict(
+            orientation="v",
+            yanchor="top",
+            y=1,
+            xanchor="left",
+            x=1.05,
+            font=dict(size=13)
+        )
+    )
+    # 3) Tabela sem índice
+    with st.expander("📋 Ver população total por região"):
+        st.dataframe(df_agrupado.reset_index(drop=True), 
+                        hide_index=True,
+                        use_container_width=True)        
+    # 7) Exibe o gráfico
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # 8) Fonte oficial
+    st.markdown(
+        "🔗 Fonte: [Prefeitura Municipal de São José dos Campos – População](https://www.sjc.sp.gov.br/servicos/governanca/populacao/)"
+    )
+
+def pop_socio_2():
+    # with st.container(border= True):    
+    # Carrega os dados
+    df = pd.read_csv("pop_socio.csv",encoding='latin-1', sep=";")
+    
+    # Lista de regiões únicas
+    regioes_disponiveis = df["Região"].dropna().unique().tolist()
+    
+    # Filtro de seleção de região
+    regiao_selecionada = st.selectbox(
+        "🗺️ Selecione uma região para visualizar os subsetores:",
+        options=regioes_disponiveis
+    )
+    
+    # Filtra os subsetores da região escolhida
+    df_subsetores = df[df["Região"] == regiao_selecionada]
+    
+    # Ordena os subsetores por população (do maior para o menor)
+    df_subsetores = df_subsetores.sort_values(by="População", ascending=False)
+    
+    # Gráfico de barras por subsetores da região selecionada
+    fig = px.bar(
+        df_subsetores,
+        x="População",
+        y="Susbsetor \x96 Nome",
+        orientation="h",
+        text="População",
+        color="Susbsetor \x96 Nome",
+        color_discrete_sequence=px.colors.qualitative.Set3
+    )
+    
+    fig.update_traces(
+        texttemplate="%{text:,}",
+        textposition="outside",
+        textfont=dict(color="black", size=14),
+        marker_line_color="black",
+        marker_line_width=1,
+        cliponaxis=False,
+        hovertemplate="%{y}: %{x:,.0f} habitantes<extra></extra>"
+    )
+    
+    fig.update_xaxes(
+        showgrid=True,
+        gridwidth=1,
+        gridcolor="lightgray",
+        zeroline=False,
+        tickfont=dict(size=14, family="Arial, sans-serif", color="black"),
+        title_font=dict(size=16, family="Arial, sans-serif", color="black")
+    )
+    fig.update_yaxes(
+        showgrid=False,
+        tickfont=dict(size=14, family="Arial, sans-serif", color="black"),
+        title_font=dict(size=16, family="Arial, sans-serif", color="black")
+    )
+    
+    fig.update_layout(
+        title=f"📊 População por Subsetores – Região {regiao_selecionada}",
+        separators=",.",
+        height=900,
+        margin=dict(t=80, b=50, l=20, r=20),
+        showlegend=False
+    )
+    
+    with st.expander("📋 Ver tabela de subsetores da região selecionada"):
+        st.dataframe(df_subsetores[["Susbsetor \x96 Nome", "População"]].reset_index(drop=True), 
+                        use_container_width=True,
+                        hide_index = True)
+    
+    st.plotly_chart(fig, use_container_width=True)
         
         
 
